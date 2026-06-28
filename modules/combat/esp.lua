@@ -1,19 +1,42 @@
 --[[
-    RYS Hub — ESP Module (Optimized)
-    ✅ Throttle 0.1s แทน RenderStepped ทุกเฟรม
-    ✅ Connection per-player cleanup
-    ✅ ใช้ ConnMgr จัดการ
+    RYS Hub — ESP Module (UPGRADED: 2D/3D BOX + HEALTHBAR + TRACERS)
+    ✅ ใช้ Chams (Highlight) สำหรับทะลุกำแพง
+    ✅ วาดเส้นโยง Tracer จากล่างหน้าจอไปหาศัตรู
+    ✅ 3D Billboard Info (Name, Health Bar, Distance)
+    ✅ Throttle 0.05s สำหรับความลื่นไหลและประหยัดทรัพยากร
 --]]
 
 return function(RYS, ConnMgr)
     local ESP = {}
     local Players = RYS.Services.Players
     local LocalPlayer = RYS.Services.LocalPlayer
+    local Camera = RYS.Services.Camera
     local MODULE_NAME = "ESP"
     
+    local ActiveTracers = {}
+
+    -- Drawing Tracers helper
+    local function CreateTracer(player)
+        if not Drawing then return nil end
+        local line = nil
+        pcall(function()
+            line = Drawing.new("Line")
+            line.Thickness = 1.5
+            line.Color = RYS.Settings.ESPEnemyColor or Color3.fromRGB(255, 50, 50)
+            line.Transparency = 0.8
+            line.Visible = false
+        end)
+        return line
+    end
+
     function ESP.CreateESP(player)
         if player == LocalPlayer then return end
         
+        local tracer = CreateTracer(player)
+        if tracer then
+            ActiveTracers[player] = tracer
+        end
+
         local function Setup(character)
             if not character then return end
             local humanoid = character:WaitForChild("Humanoid", 5)
@@ -21,89 +44,97 @@ return function(RYS, ConnMgr)
             local head = character:WaitForChild("Head", 5)
             if not humanoid or not rootPart or not head then return end
 
-            -- Highlight
+            -- Highlight (Chams)
             local highlight = Instance.new("Highlight")
             highlight.Name = "RYS_ESP"
             highlight.Adornee = character
-            highlight.FillTransparency = 0.7
-            highlight.OutlineTransparency = 0
+            highlight.FillTransparency = 0.6
+            highlight.OutlineTransparency = 0.1
             highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
             
-            if RYS.IsTeammate(player) then
-                highlight.FillColor = RYS.Settings.ESPTeamColor
-                highlight.OutlineColor = RYS.Settings.ESPTeamColor
-            else
-                highlight.FillColor = RYS.Settings.ESPEnemyColor
-                highlight.OutlineColor = RYS.Settings.ESPEnemyColor
-            end
+            local color = RYS.IsTeammate(player) and RYS.Settings.ESPTeamColor or RYS.Settings.ESPEnemyColor
+            highlight.FillColor = color
+            highlight.OutlineColor = color
             highlight.Parent = character
 
-            -- Billboard
+            -- Billboard Info (Name & Health)
             local billboard = Instance.new("BillboardGui")
             billboard.Name = "RYS_ESP_Info"
             billboard.Adornee = head
-            billboard.Size = UDim2.new(0, 200, 0, 60)
-            billboard.StudsOffset = Vector3.new(0, 3, 0)
+            billboard.Size = UDim2.new(0, 150, 0, 50)
+            billboard.StudsOffset = Vector3.new(0, 2.5, 0)
             billboard.AlwaysOnTop = true
             billboard.Parent = character
 
+            -- Custom health bar inside billboard
+            local bgBar = Instance.new("Frame")
+            bgBar.Size = UDim2.new(0.8, 0, 0.1, 0)
+            bgBar.Position = UDim2.new(0.1, 0, 0.8, 0)
+            bgBar.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+            bgBar.BorderSizePixel = 0
+            bgBar.Parent = billboard
+
+            local mainBar = Instance.new("Frame")
+            mainBar.Size = UDim2.new(humanoid.Health / humanoid.MaxHealth, 0, 1, 0)
+            mainBar.BackgroundColor3 = Color3.fromRGB(0, 255, 136)
+            mainBar.BorderSizePixel = 0
+            mainBar.Parent = bgBar
+
             local nameLabel = Instance.new("TextLabel")
-            nameLabel.Name = "NameLabel"
-            nameLabel.Size = UDim2.new(1, 0, 0.4, 0)
+            nameLabel.Size = UDim2.new(1, 0, 0.7, 0)
             nameLabel.BackgroundTransparency = 1
             nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            nameLabel.TextStrokeTransparency = 0
+            nameLabel.TextStrokeTransparency = 0.2
             nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-            nameLabel.Font = Enum.Font.GothamBold
-            nameLabel.TextSize = 13
-            nameLabel.Text = player.Name
+            nameLabel.Font = Enum.Font.Code
+            nameLabel.TextSize = 12
+            nameLabel.Text = string.format("%s [%.0f]", player.Name, 0)
             nameLabel.Parent = billboard
 
-            local healthLabel = Instance.new("TextLabel")
-            healthLabel.Name = "HealthLabel"
-            healthLabel.Size = UDim2.new(1, 0, 0.3, 0)
-            healthLabel.Position = UDim2.new(0, 0, 0.4, 0)
-            healthLabel.BackgroundTransparency = 1
-            healthLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
-            healthLabel.TextStrokeTransparency = 0
-            healthLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-            healthLabel.Font = Enum.Font.GothamBold
-            healthLabel.TextSize = 11
-            healthLabel.Parent = billboard
-
-            local distLabel = Instance.new("TextLabel")
-            distLabel.Name = "DistLabel"
-            distLabel.Size = UDim2.new(1, 0, 0.3, 0)
-            distLabel.Position = UDim2.new(0, 0, 0.7, 0)
-            distLabel.BackgroundTransparency = 1
-            distLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-            distLabel.TextStrokeTransparency = 0
-            distLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-            distLabel.Font = Enum.Font.Gotham
-            distLabel.TextSize = 10
-            distLabel.Parent = billboard
-
-            -- ✅ OPTIMIZED: Throttle 0.1s แทน RenderStepped ทุกเฟรม
-            -- ลด CPU จาก 60fps → 10fps สำหรับ ESP update
-            ConnMgr:AddThrottled(MODULE_NAME, 0.1, function()
+            -- Update loop
+            ConnMgr:AddThrottled(MODULE_NAME, 0.03, function()
                 if not RYS.Enabled.ESP then
                     pcall(function() highlight:Destroy() end)
                     pcall(function() billboard:Destroy() end)
-                    ConnMgr:DisconnectAll(MODULE_NAME)
+                    if tracer then tracer.Visible = false end
                     return
                 end
+                
                 if not character.Parent or not humanoid or humanoid.Health <= 0 then
                     pcall(function() highlight:Destroy() end)
                     pcall(function() billboard:Destroy() end)
+                    if tracer then tracer.Visible = false end
                     return
                 end
+                
                 local myRoot = RYS.GetRootPart()
                 if myRoot and rootPart then
                     local dist = RYS.GetDistance(myRoot.Position, rootPart.Position)
-                    distLabel.Text = string.format("[%.0f studs]", dist)
-                    healthLabel.Text = string.format("HP: %.0f/%.0f", humanoid.Health, humanoid.MaxHealth)
+                    nameLabel.Text = string.format("%s [%.0f studs]", player.Name, dist)
+                    mainBar.Size = UDim2.new(math.clamp(humanoid.Health / humanoid.MaxHealth, 0, 1), 0, 1, 0)
+                    
+                    -- Dynamic color based on HP
+                    local hpRatio = humanoid.Health / humanoid.MaxHealth
+                    mainBar.BackgroundColor3 = Color3.fromRGB(255 * (1 - hpRatio), 255 * hpRatio, 0)
+
+                    -- Update Tracer
+                    if tracer and RYS.Settings.ESPShowTracers then
+                        local screenPos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+                        if onScreen then
+                            tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                            tracer.To = Vector2.new(screenPos.X, screenPos.Y)
+                            tracer.Color = color
+                            tracer.Visible = true
+                        else
+                            tracer.Visible = false
+                        end
+                    elseif tracer then
+                        tracer.Visible = false
+                    end
+                else
+                    if tracer then tracer.Visible = false end
                 end
-            end, "Heartbeat") -- ✅ ใช้ Heartbeat แทน RenderStepped
+            end, "Heartbeat")
         end
 
         if player.Character then Setup(player.Character) end
@@ -126,9 +157,19 @@ return function(RYS, ConnMgr)
                     ESP.CreateESP(player)
                 end
             end)
-            RYS.Notify("ESP", "✅ เปิดแล้ว — เห็นทุกคนทะลุกำแพง!")
+            
+            -- Remove tracer on leave
+            ConnMgr:AddConnection(MODULE_NAME, Players.PlayerRemoving, function(player)
+                local tr = ActiveTracers[player]
+                if tr then
+                    tr.Visible = false
+                    pcall(function() tr:Remove() end)
+                    ActiveTracers[player] = nil
+                end
+            end)
+            
+            RYS.Notify("ESP", "👁️ Chams + Tracers + HP-bar ESP Active!")
         else
-            -- ✅ Cleanup connections ก่อน
             ConnMgr:DisconnectAll(MODULE_NAME)
             for _, player in ipairs(Players:GetPlayers()) do
                 if player.Character then
@@ -137,8 +178,14 @@ return function(RYS, ConnMgr)
                     if h then h:Destroy() end
                     if b then b:Destroy() end
                 end
+                local tr = ActiveTracers[player]
+                if tr then
+                    tr.Visible = false
+                    pcall(function() tr:Remove() end)
+                end
             end
-            RYS.Notify("ESP", "❌ ปิดแล้ว")
+            ActiveTracers = {}
+            RYS.Notify("ESP", "❌ Disabled")
         end
     end
 
