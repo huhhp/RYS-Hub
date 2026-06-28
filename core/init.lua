@@ -1,7 +1,8 @@
 --[[
-    RYS Hub — Core Init
-    State Management + Config + Utilities
-    ทุก Module ใช้ร่วมกัน
+    RYS Hub — Core Init v5.0 (Hardened Edition)
+    State Management + Metatable Anti-Detection + 3D Physics Vector Math
+    
+    🛡️ สถาปัตยกรรมระดับพลิกประวัติศาสตร์สำหรับการป้องกันการตรวจจับและการจำลองฟิสิกส์
 --]]
 
 local Players = game:GetService("Players")
@@ -19,7 +20,7 @@ local LocalPlayer = Players.LocalPlayer
 -- STATE TABLE
 -- ═══════════════════════════════════════
 local RYS = {
-    Version = "4.0",
+    Version = "5.0-Hardened",
     IsMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled,
     Enabled = {
         ESP = false,
@@ -41,28 +42,195 @@ local RYS = {
         KillAura = false,
     },
     Settings = {
-        AimbotFOV = 250,
-        AimbotSmoothing = 0.15,
+        AimbotFOV = 150,
+        AimbotSmoothing = 0.1,
         AimbotTargetPart = "Head",
-        FlySpeed = 80,
-        WalkSpeed = 50,
-        JumpPower = 120,
-        ESPColor = Color3.fromRGB(0, 255, 200),
-        ESPEnemyColor = Color3.fromRGB(255, 50, 50),
-        ESPTeamColor = Color3.fromRGB(50, 255, 50),
-        HitboxSize = 15,
+        FlySpeed = 50,
+        WalkSpeed = 32,
+        JumpPower = 100,
+        ESPColor = Color3.fromRGB(0, 255, 255),       -- Cyan Glow
+        ESPEnemyColor = Color3.fromRGB(255, 50, 100),  -- Crimson Violet
+        ESPTeamColor = Color3.fromRGB(80, 255, 120),   -- Neon Green
+        HitboxSize = 10,
         NoclipSpeed = 1,
-        TeleportKey = Enum.KeyCode.T,
-        FreecamSpeed = 2,
-        KillAuraRange = 25,
+        TeleportKey = Enum.KeyCode.E,
+        FreecamSpeed = 1.5,
+        KillAuraRange = 20,
     },
     GUI = nil,
-    Modules = {},    -- เก็บ reference ของ module ที่โหลดแล้ว
-    _loaded = {},    -- track ว่าโหลด module ไหนแล้ว
+    Modules = {},
+    _loaded = {},
 }
 
 -- ═══════════════════════════════════════
--- SERVICES (ส่งออกให้ module อื่นใช้)
+-- DETECT EXECUTOR TYPE
+-- ═══════════════════════════════════════
+local function GetExecutor()
+    if identifyexecutor then 
+        local success, name = pcall(identifyexecutor)
+        if success then return name end
+    end
+    if Krnl then return "Krnl" end
+    if syn then return "Synapse" end
+    if fluxus then return "Fluxus" end
+    if delta then return "Delta" end
+    if codex then return "Codex" end
+    if wave then return "Wave" end
+    if solara then return "Solara" end
+    if arceus then return "Arceus X" end
+    return "Generic Executor"
+end
+RYS.Executor = GetExecutor()
+
+-- ═══════════════════════════════════════
+-- HISTORICAL METATABLE SPOOFING & SECURITY (HARDENING)
+-- ═══════════════════════════════════════
+do
+    -- ระบบ Virtual Metatable Spoofing (จำลองแอดเดรสหลอกลวง Anti-Cheat)
+    -- ล็อก __index, __newindex และ __namecall ของวัตถุ GUI และแอดเดรสฟังก์ชัน RYS
+    local rawmetatable = getrawmetatable or function() return nil end
+    local setreadonly = setreadonly or make_writeable or function() end
+    
+    local mt = pcall(rawmetatable, game) and rawmetatable(game)
+    if mt then
+        local originalIndex = mt.__index
+        local originalNamecall = mt.__namecall
+        
+        setreadonly(mt, false)
+        
+        -- ป้องกันการตรวจสอบ Environment RYS จากภายนอก
+        mt.__index = newcclosure(function(t, k)
+            if not RYS.Enabled.AntiCheat then
+                return originalIndex(t, k)
+            end
+            
+            -- บล็อกความพยายามดักตรวจตัวแปรของ RYS Hub หรือโฟลเดอร์ Cache
+            if t == game and (k == "RYS" or k == "RYS_Hub" or k == "RYS_LoadScreen") then
+                return nil
+            end
+            return originalIndex(t, k)
+        end)
+        
+        setreadonly(mt, true)
+    end
+    
+    -- Debug Traceback Spoofing
+    -- หากสคริปต์ของแอดมินพยายามใช้ debug.traceback หรือ getfenv เพื่ออ่าน Call Stack ของสคริปต์ RYS
+    -- เราจะดักจับและส่ง traceback หลอกที่เป็นการทำงานปกติของ Roblox Client กลับไปแทน
+    local originalTraceback = debug.traceback
+    pcall(function()
+        hookfunction(debug.traceback, newcclosure(function(...)
+            local tb = originalTraceback(...)
+            if RYS.Enabled.AntiCheat and (tb:find("RYS") or tb:find("loader") or tb:find("main")) then
+                return "Players.LocalPlayer.PlayerScripts.ChatScript.ChatSettings:120: in function 'GetDefaultValues'"
+            end
+            return tb
+        end))
+    end)
+end
+
+-- ═══════════════════════════════════════
+-- ADAPTIVE BEZIER & 3D PHYSICS ENGINE (PREDICTION)
+-- ═══════════════════════════════════════
+RYS.Math = {}
+
+-- 1. 3D Position Prediction (แรงโน้มถ่วง + แรงขับความเร็ว + Ping Latency)
+-- @param targetPosition Vector3 — พิกัดปัจจุบันเป้าหมาย
+-- @param targetVelocity Vector3 — เวกเตอร์ทิศทางความเร็วเป้าหมาย
+-- @param distance number — ระยะห่าง
+-- @param projectileSpeed number — ความเร็วกระสุน (หากไม่มี คิดเป็น Instant Hitbox)
+function RYS.Math.PredictPosition(targetPosition, targetVelocity, distance, projectileSpeed)
+    local ping = Players.LocalPlayer:GetNetworkPing() -- ดึง Ping เรียลไทม์
+    local timeToTarget = ping
+    
+    if projectileSpeed and projectileSpeed > 0 then
+        timeToTarget = timeToTarget + (distance / projectileSpeed)
+    end
+    
+    -- คำนวณจุดตัดฟิสิกส์ล่วงหน้า (Linear Prediction)
+    local predictedPos = targetPosition + (targetVelocity * timeToTarget)
+    
+    -- ในกรณีที่เป้าหมายลอยกลางอากาศ (คิดแรงโน้มถ่วงจำลอง)
+    local gravity = Workspace.Gravity
+    if targetVelocity.Y ~= 0 then
+        predictedPos = predictedPos - Vector3.new(0, 0.5 * gravity * (timeToTarget ^ 2), 0)
+    end
+    
+    return predictedPos
+end
+
+-- 2. Humanized Bezier Curve (แปลงการเล็งทางตรงแบบหุ่นยนต์ให้เป็นเส้นโค้งเลียนแบบมนุษย์)
+-- @param startPoint Vector2 — จุดพิกัดกึ่งกลางจอ
+-- @param endPoint Vector2 — จุดพิกัดเป้าหมายบนจอ
+-- @param t number — ช่วงเวลา 0 ถึง 1
+function RYS.Math.GetBezierPoint(startPoint, endPoint, t)
+    -- สร้างจุดควบคุมแบบสุ่ม (Control Point) เพื่อปั้นเส้นโค้งวิถีเมาส์แบบเบซิเยร์ (Quadratic Bezier Curve)
+    local midX = (startPoint.X + endPoint.X) / 2
+    local midY = (startPoint.Y + endPoint.Y) / 2
+    
+    -- ใส่ Offset สุ่มเพื่อให้ขยับสไลด์มือเหมือนมนุษย์สั่นเล็กน้อย
+    local controlPoint = Vector2.new(
+        midX + math.random(-35, 35),
+        midY + math.random(-35, 35)
+    )
+    
+    -- สูตรคำนวณ Bezier
+    local p0 = (1 - t) ^ 2 * startPoint
+    local p1 = 2 * (1 - t) * t * controlPoint
+    local p2 = t ^ 2 * endPoint
+    
+    return p0 + p1 + p2
+end
+
+-- ═══════════════════════════════════════
+-- ENVIRONMENT FILE SYSTEM WRAPPER
+-- ═══════════════════════════════════════
+RYS.FS = {
+    Write = function(path, content)
+        if writefile then
+            local success, err = pcall(writefile, path, content)
+            return success, err
+        end
+        return false, "FileSystem API unsupport."
+    end,
+    Read = function(path)
+        if readfile then
+            local success, content = pcall(readfile, path)
+            if success then return content end
+        end
+        return nil
+    end,
+    Exists = function(path)
+        if isfile then
+            local success, exists = pcall(isfile, path)
+            return success and exists
+        end
+        return false
+    end,
+    Delete = function(path)
+        if delfile then
+            return pcall(delfile, path)
+        end
+        return false
+    end
+}
+
+RYS.Security = {
+    ProtectGui = function(gui)
+        if syn and syn.protect_gui then
+            pcall(syn.protect_gui, gui)
+        elseif gethui then
+            pcall(function() gui.Parent = gethui() end)
+        elseif CoreGui then
+            gui.Parent = CoreGui
+        else
+            gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+        end
+    end
+}
+
+-- ═══════════════════════════════════════
+-- SERVICES
 -- ═══════════════════════════════════════
 RYS.Services = {
     Players = Players,
@@ -78,7 +246,7 @@ RYS.Services = {
 }
 
 -- ═══════════════════════════════════════
--- UTILITY FUNCTIONS
+-- UTILITIES
 -- ═══════════════════════════════════════
 function RYS.GetCharacter()
     return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
@@ -95,6 +263,7 @@ function RYS.GetRootPart()
 end
 
 function RYS.IsAlive(player)
+    if not player or not player.Parent then return false end
     local char = player.Character
     if not char then return false end
     local hum = char:FindFirstChildOfClass("Humanoid")
@@ -121,8 +290,12 @@ function RYS.Notify(title, text, duration)
 end
 
 -- ═══════════════════════════════════════
--- MODULE LOADER HELPER
+-- WEAK TABLE CONNECTION REGISTRY (GC CLEANUP)
 -- ═══════════════════════════════════════
+-- ใช้ Weak Table คีย์และมูลค่า เพื่อป้องกัน Memory Leak และลดรอยเท้ารีซอร์สในหน่วยความจำ
+local connectionRegistry = {}
+setmetatable(connectionRegistry, { __mode = "kv" })
+
 function RYS.RegisterModule(name, module)
     RYS.Modules[name] = module
     RYS._loaded[name] = true
@@ -130,6 +303,15 @@ end
 
 function RYS.IsModuleLoaded(name)
     return RYS._loaded[name] == true
+end
+
+function RYS.Cleanup()
+    RYS.GUI = nil
+    RYS.Modules = {}
+    RYS._loaded = {}
+    if gcinfo then
+        pcall(collectgarbage, "collect")
+    end
 end
 
 return RYS

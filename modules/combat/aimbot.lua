@@ -1,9 +1,9 @@
 --[[
-    RYS Hub — Aimbot Module (UPGRADED: SILENT AIM + PREDICTION + VISIBILITY CHECK)
-    ✅ Silent Aim (Intercepts namecall or raycast if supported)
-    ✅ Target Prediction based on velocity & ping
-    ✅ Visibility Check (Raycast obstacles check)
-    ✅ FOV Circle Drawing integration
+    RYS Hub — Aimbot Module (PREDICTIVE BEZIER EDITION v5.0)
+    
+    🎯 3D physics targeting prediction
+    🎨 Curved Humanized Bezier path smoothing
+    🛡️ Silent Aim redirection & Anti-Cheat bypassing
 --]]
 
 return function(RYS, ConnMgr)
