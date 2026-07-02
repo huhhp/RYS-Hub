@@ -1,16 +1,16 @@
-# ⚡ RYS Ultimate Hub v4.0
+# ⚡ RYS Ultimate Hub v5.0 — Hardened Edition
 
-> Made for Wanq by RYS — All-in-One Roblox Script Hub
+> Made for Wanq by RYS — All-in-One Roblox Exploit Hub
+> 
+> **25 Modules** | **Multi-CDN** | **XOR Encryption** | **Local Cache** | **Mobile Support**
 
 ## 🚀 วิธีใช้งาน
 
 Execute แค่บรรทัดเดียวใน Executor:
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/YOUR_USERNAME/RYS-Hub/main/loader.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/huhhp/RYS-Hub/main/loader.lua"))()
 ```
-
-> ⚠️ เปลี่ยน `YOUR_USERNAME` เป็น GitHub username ของคุณ
 
 ## 📱 Platform Support
 
@@ -19,99 +19,113 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/YOUR_USERNAME/RYS-Hub
 | 💻 PC | กดปุ่ม `RightShift` หรือกดปุ่ม ⚡ |
 | 📱 Mobile | กดปุ่ม ⚡ (ลากได้) |
 
-## 📋 Modules (22 ตัว)
+## 📋 Modules (25 ตัว)
 
-### 🎯 Combat
-- **Aimbot** — ล็อคเป้าอัตโนมัติ (PC: คลิกขวาค้าง, Mobile: Auto)
+### 🎯 Combat (4)
+- **Aimbot** — ล็อคเป้าอัตโนมัติ + Bezier Humanization + Prediction
 - **ESP / Wallhack** — เห็นผู้เล่นทะลุกำแพง + ชื่อ/HP/ระยะ
 - **Kill Aura** — โจมตีอัตโนมัติในรัศมีที่กำหนด
 - **Hitbox Expander** — ขยาย hitbox ศัตรู
 
-### 🏃 Movement
+### 🏃 Movement (5)
 - **Fly Hack** — บินได้ (PC: WASD+Space/Ctrl, Mobile: Joystick+Jump)
-- **Speed Hack** — วิ่งเร็ว
-- **Noclip** — ทะลุกำแพง
-- **Infinite Jump** — กระโดดไม่จำกัด
+- **Speed Hack** — เปลี่ยน WalkSpeed/JumpPower
+- **Noclip** — ทะลุกำแพงและสิ่งกีดขวาง
+- **Infinite Jump** — กระโดดกลางอากาศไม่จำกัด
 - **Freecam** — กล้องอิสระ (WASD+QE)
 
-### 🛡️ Defense
-- **God Mode** — ไม่ตาย
-- **Invisibility** — ล่องหน
-- **Anti-Kick** — ป้องกันการเตะออก
+### 🛡️ Defense (5)
+- **God Mode** — ล็อกเลือดไม่ตาย
+- **Invisibility** — ล่องหนจากผู้เล่นอื่น
+- **Anti-Kick** — สกัดกั้น Remote Kick
 - **Anti-AFK** — ป้องกัน AFK timeout
-- **Anti-Cheat Bypass** — 7 ชั้นป้องกัน
+- **Anti-Cheat Bypass** — 7-Layer AC Bypass
 
-### 💰 Exploit
-- **Remote Spy** — ดักจับ Remote Events/Functions
-- **Auto Farm** — เก็บไอเทมอัตโนมัติ
+### 💰 Exploit (11)
+- **Remote Spy** — ดักจับ + Replay Remote Events/Functions
+- **Auto Farm** — Multi-method auto collect + Teleport
 - **Value Scanner** — สแกนค่าในเกม
-- **Server Hop** — เปลี่ยน server
+- **Server Hop** — เปลี่ยน server อัตโนมัติ
 - **Bring All** — ดึงผู้เล่นทุกคนมาหา
 - **Chat Spam** — ส่งข้อความซ้ำ
 - **FOV Changer** — เปลี่ยนมุมมอง
+- **🔓 GamePass Bypass** — Hook ownership checks (3 วิธี: Namecall + DirectHook + GC Scan)
+- **🔑 Unlock All Items** — Clone Tools + Patch Attributes + Fire Unlock Remotes
+- **📦 Item Spawner** — Deep-scan + Catalog + Spawn by name/index/all
+- **🔁 Dupe Engine** — 5 วิธี (Clone, Drop, Remote Replay, Desync, Overflow)
 
-## ⚡ Performance Optimizations (v4.0)
+## ⚡ Performance Optimizations
 
-| เดิม (v3.1) | ใหม่ (v4.0) | ผลลัพธ์ |
-|---|---|---|
+| เดิม | ใหม่ (v5.0) | ผลลัพธ์ |
+|------|-------------|---------|
 | ESP: RenderStepped ทุกเฟรม | Heartbeat + Throttle 0.1s | **ลด CPU 83%** |
-| AutoFarm: GetDescendants ทุก Heartbeat | Throttle 0.5s + Touch limit | **ลด CPU 97%** |
-| Speed: RenderStepped ทุกเฟรม | Throttle 0.5s | **ลด CPU 97%** |
-| Hitbox: RenderStepped ทุกเฟรม | Throttle 0.2s | **ลด CPU 88%** |
+| AutoFarm: GetDescendants ทุก beat | Throttle 0.5s + Touch limit | **ลด CPU 97%** |
 | Connection leak ทุก module | Connection Manager cleanup | **ลด Memory Leak 100%** |
 | Pulse animation: task.spawn loop | TweenInfo RepeatCount=-1 | **ลด Thread 100%** |
+
+## 🔒 Security Features (v5.0)
+
+- **Multi-CDN Failover** — 3 CDN sources + Local Cache backup
+- **XOR Encryption** — ถอดรหัสทราฟฟิกแบบ Dynamic Bitwise XOR
+- **Metatable Spoofing** — ซ่อน RYS จาก Anti-Cheat (__index, __namecall hook)
+- **Debug Traceback Spoofing** — ส่ง traceback หลอกกลับ
+- **GUI Protection** — syn.protect_gui / gethui() / CoreGui fallback
+- **Weak Table GC** — ป้องกัน Memory Leak ด้วย weak reference
 
 ## 📁 โครงสร้างไฟล์
 
 ```
 RYS-Hub/
-├── loader.lua              ← ไฟล์หลัก (execute ตัวนี้)
+├── loader.lua                  ← Entry Point (execute ตัวนี้)
 ├── core/
-│   ├── init.lua            ← State + Config + Utilities
-│   └── connection.lua      ← Connection Manager + Throttle
+│   ├── init.lua                ← State + Config + Math + Security
+│   └── connection.lua          ← Connection Manager + Throttle
 ├── modules/
-│   ├── combat/             ← Aimbot, ESP, Kill Aura, Hitbox
-│   ├── movement/           ← Fly, Speed, Noclip, InfJump, Freecam
-│   ├── defense/            ← God Mode, Invisible, Anti-*
-│   └── exploit/            ← Remote Spy, Auto Farm, Value Mod, etc.
+│   ├── combat/                 ← Aimbot, ESP, Kill Aura, Hitbox
+│   ├── movement/               ← Fly, Speed, Noclip, InfJump, Freecam
+│   ├── defense/                ← God Mode, Invisible, Anti-*
+│   └── exploit/                ← Remote Spy, Auto Farm, GamePass, Dupe, etc.
 ├── gui/
-│   ├── components.lua      ← Button/Section creators
-│   ├── floating.lua        ← Floating toggle button
-│   └── main.lua            ← Main GUI
-└── README.md               ← ไฟล์นี้
+│   ├── components.lua          ← UI Component Factory
+│   ├── floating.lua            ← Floating toggle button
+│   └── main.lua                ← Main Dashboard (5 tabs)
+├── README.md                   ← ไฟล์นี้
+├── PROJECT_CONTEXT.md          ← AI Handoff Document
+└── DEVELOPMENT_ROADMAP.md      ← แผนพัฒนาต่อ
 ```
 
-## 🔧 Console Commands
-
-เข้าถึงได้จาก Console (F9) หลังจากโหลดแล้ว:
+## 🔧 Console Commands (F9)
 
 ```lua
 -- ดูสถิติ Connection
 ConnMgr:PrintStats()
 
--- ดู Anti-Cheat blocked remotes
-RYS.Modules.AntiCheat.GetStats()
-
 -- ดู Remote Spy logs
-for i, log in ipairs(RYS.Modules.RemoteSpy.Logs) do
-    print(i, log.Remote)
-end
+for i, log in ipairs(RYS.Modules.RemoteSpy.Logs) do print(i, log.Remote) end
 
 -- เปลี่ยนค่า Settings
 RYS.Settings.AimbotFOV = 300
 RYS.Settings.FlySpeed = 100
-RYS.Settings.WalkSpeed = 80
-RYS.Settings.HitboxSize = 20
-RYS.Settings.KillAuraRange = 30
+
+-- Dupe เฉพาะ item
+RYS.Modules.Dupe.CloneDupe("Sword", 10)
+RYS.Modules.Dupe.OverflowDupe(100)
+
+-- Spawn item ตามชื่อ
+RYS.Modules.ItemSpawn.SpawnByName("Sword")
+RYS.Modules.ItemSpawn.Scan()
+
+-- ดู GamePass spoof log
+for i, log in ipairs(RYS.Modules.GamePass.SpoofLog) do print(i, log.Type, log.Id) end
 ```
 
-## 📝 Setup Guide
+## 🤝 AI Development
 
-1. สร้าง GitHub Repository ชื่อ `RYS-Hub`
-2. Upload ไฟล์ทั้งหมดตาม structure ด้านบน
-3. เปลี่ยน `YOUR_USERNAME` ใน `loader.lua` เป็น username จริง
-4. Execute `loadstring(...)()` ใน Executor
+โปรเจกต์นี้ออกแบบให้ **AI ตัวไหนก็ทำงานต่อได้**:
+- 📖 อ่าน `PROJECT_CONTEXT.md` เพื่อเข้าใจสถาปัตยกรรม
+- 🗺️ อ่าน `DEVELOPMENT_ROADMAP.md` เพื่อดูแผนพัฒนา
+- 🧠 อ่าน `C:\AI\memory\memory-store.json` เพื่อดู context
 
 ---
 
-**⚡ RYS v4.0 — Faster. Cleaner. Stronger.**
+**⚡ RYS v5.0 — Faster. Harder. Stronger.**

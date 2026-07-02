@@ -40,8 +40,17 @@ local RYS = {
         RemoteSpy = false,
         HitboxExpander = false,
         KillAura = false,
+        GamePassBypass = false,
+        UnlockAll = false,
+        DupeEngine = false,
+        MonitorWidget = false,
+        Bridge = false,
+        ScriptSpy = false,
+        Selector = false,
     },
     Settings = {
+        ActiveTheme = "Electric Violet (Default)",
+        AutoSave = true,
         AimbotFOV = 150,
         AimbotSmoothing = 0.1,
         AimbotTargetPart = "Head",
@@ -57,6 +66,7 @@ local RYS = {
         FreecamSpeed = 1.5,
         KillAuraRange = 20,
     },
+    Keybinds = {},
     GUI = nil,
     Modules = {},
     _loaded = {},
@@ -280,13 +290,26 @@ function RYS.IsTeammate(player)
 end
 
 function RYS.Notify(title, text, duration)
-    pcall(function()
-        StarterGui:SetCore("SendNotification", {
-            Title = "⚡ RYS | " .. title,
-            Text = text,
-            Duration = duration or 3,
-        })
-    end)
+    if RYS.Modules.Notifications then
+        -- ถ้ามี Custom Module ให้มันจัดการเอง
+        -- แต่เนื่องจากฟังก์ชันเดิมจะถูก override ไปแล้วใน Notifications.Init()
+        -- ดังนั้นตรงนี้มีเผื่อไว้กรณีที่มันยังไม่ init
+        pcall(function()
+            game.StarterGui:SetCore("SendNotification", {
+                Title = tostring(title) or "RYS Hub",
+                Text = tostring(text) or "",
+                Duration = tonumber(duration) or 3,
+            })
+        end)
+    else
+        pcall(function()
+            game.StarterGui:SetCore("SendNotification", {
+                Title = tostring(title) or "RYS Hub",
+                Text = tostring(text) or "",
+                Duration = tonumber(duration) or 3,
+            })
+        end)
+    end
 end
 
 -- ═══════════════════════════════════════
@@ -311,6 +334,96 @@ function RYS.Cleanup()
     RYS._loaded = {}
     if gcinfo then
         pcall(collectgarbage, "collect")
+    end
+end
+
+-- ═══════════════════════════════════════
+-- SANITIZATION ENGINE (จาก roblox-executor-mcp)
+-- ═══════════════════════════════════════
+-- ป้องกัน output ล้นเมื่อ inspect ข้อมูลขนาดใหญ่
+-- ใช้ bounded serialization: จำกัด depth, entries, string length
+do
+    local SANITIZE_MAX_DEPTH = 8
+    local SANITIZE_MAX_ENTRIES = 60
+    local SANITIZE_MAX_STRING = 500
+    
+    function RYS.Sanitize(value, depth, seen)
+        depth = depth or 0
+        local valueType = typeof(value)
+        
+        if valueType == "Instance" then
+            local ok, full = pcall(function() return value:GetFullName() end)
+            return ok and full or tostring(value)
+        elseif valueType == "string" then
+            if #value > SANITIZE_MAX_STRING then
+                return string.sub(value, 1, SANITIZE_MAX_STRING)
+                    .. "…(+" .. (#value - SANITIZE_MAX_STRING) .. " chars)"
+            end
+            return value
+        elseif valueType == "number" or valueType == "boolean" or valueType == "nil" then
+            return value
+        elseif valueType == "EnumItem" then
+            return tostring(value)
+        elseif valueType == "Vector3" or valueType == "CFrame" or valueType == "Color3" then
+            return tostring(value)
+        elseif valueType ~= "table" then
+            return tostring(value)
+        end
+        
+        if depth >= SANITIZE_MAX_DEPTH then
+            return "<table: max depth>"
+        end
+        
+        seen = seen or {}
+        if seen[value] then
+            return "<cyclic ref>"
+        end
+        seen[value] = true
+        
+        local result = {}
+        local count = 0
+        local omitted = 0
+        for k, v in pairs(value) do
+            if count >= SANITIZE_MAX_ENTRIES then
+                omitted = omitted + 1
+            else
+                count = count + 1
+                local key = k
+                if typeof(k) ~= "string" and typeof(k) ~= "number" then
+                    key = tostring(k)
+                end
+                result[key] = RYS.Sanitize(v, depth + 1, seen)
+            end
+        end
+        if omitted > 0 then
+            result["__omitted"] = omitted .. " entries omitted"
+        end
+        
+        seen[value] = nil
+        return result
+    end
+    
+    -- DeepInspect: สร้างข้อความอ่านง่ายจาก table ที่ sanitize แล้ว
+    function RYS.DeepInspect(value, indent)
+        indent = indent or 0
+        local sanitized = RYS.Sanitize(value)
+        local lines = {}
+        local prefix = string.rep("  ", indent)
+        
+        if type(sanitized) ~= "table" then
+            return prefix .. tostring(sanitized)
+        end
+        
+        for k, v in pairs(sanitized) do
+            if type(v) == "table" then
+                table.insert(lines, prefix .. tostring(k) .. ":")
+                table.insert(lines, RYS.DeepInspect(v, indent + 1))
+            else
+                table.insert(lines, prefix .. tostring(k) .. " = " .. tostring(v))
+            end
+        end
+        
+        return table.concat(lines, "\n")
     end
 end
 

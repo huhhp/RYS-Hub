@@ -265,8 +265,40 @@ return function(RYS, Components)
             Components.CreateSlider(moveFrame, "JumpPower value", "🦘", 50, 350, RYS.Settings.JumpPower, function(val) RYS.Settings.JumpPower = val end)
             
             Components.CreateSectionLabel(moveFrame, "━━━ 👻 Ghost & Physics ━━━")
-            Components.CreateToggleButton(moveFrame, "Noclip Barrier Bypass", "👻", "เดินทะลุผ่านบล็อกและสิ่งกีดขวางทั้งหมดในเกม", RYS.Enabled.Noclip, function(s) M.Noclip.Toggle(s) end)
-            Components.CreateToggleButton(moveFrame, "Infinite Jump", "🦘", "กระโดดกลางอากาศได้ไม่จำกัดจำนวนครั้ง", RYS.Enabled.InfiniteJump, function(s) M.InfJump.Toggle(s) end)
+            Components.CreateToggleButton(moveFrame, "Noclip", "👻", "เดินทะลุกำแพง", RYS.Enabled.Noclip, function(s) if M.Noclip then M.Noclip.Toggle(s) end end)
+            Components.CreateToggleButton(moveFrame, "Infinite Jump", "🐰", "กระโดดได้ไม่จำกัดกลางอากาศ", RYS.Enabled.InfJump, function(s) if M.InfJump then M.InfJump.Toggle(s) end end)
+        
+            -- Waypoints Section
+            local movementWaypointsFrame = Components.CreateSection(moveFrame)
+            Components.CreateSectionLabel(movementWaypointsFrame, "━━━ 📍 Waypoints ━━━")
+            
+            -- Create a wrapper frame for the textbox to have a proper size
+            local wpWrapper = Instance.new("Frame")
+            wpWrapper.Size = UDim2.new(1, -20, 0, 30)
+            wpWrapper.BackgroundTransparency = 1
+            wpWrapper.Parent = movementWaypointsFrame
+            
+            local wpNameInput = Instance.new("TextBox")
+            wpNameInput.Size = UDim2.new(1, 0, 1, 0)
+            wpNameInput.PlaceholderText = "Enter Waypoint Name"
+            wpNameInput.Text = ""
+            wpNameInput.BackgroundColor3 = Color3.fromRGB(30, 25, 45)
+            wpNameInput.TextColor3 = Color3.fromRGB(220, 200, 255)
+            wpNameInput.Parent = wpWrapper
+            
+            Components.CreateActionButton(movementWaypointsFrame, "Save Current Position", "📍", function()
+                if M.Waypoints and wpNameInput.Text ~= "" then
+                    M.Waypoints.SavePosition(wpNameInput.Text)
+                    wpNameInput.Text = ""
+                end
+            end)
+            
+            Components.CreateActionButton(movementWaypointsFrame, "Teleport to Location", "✈️", function()
+                if M.Waypoints and wpNameInput.Text ~= "" then
+                    M.Waypoints.TeleportTo(wpNameInput.Text)
+                end
+            end)
+
             Components.CreateToggleButton(moveFrame, "Freecam Camera", "📹", "ถอดกล้องออกจากตัวเพื่อบินสำรวจแผนที่อิสระ", RYS.Enabled.Freecam, function(s) M.Freecam.Toggle(s) end)
         end
 
@@ -301,6 +333,18 @@ return function(RYS, Components)
             
             Components.CreateSectionLabel(exploitFrame, "━━━ 🗣️ Chat Options ━━━")
             Components.CreateActionButton(exploitFrame, "Chat Spammer (RYS Active)", "💬", function() M.ChatSpam.Execute() end)
+            
+            Components.CreateSectionLabel(exploitFrame, "━━━ 🔓 ULTIMATE BYPASS ENGINE ━━━")
+            Components.CreateToggleButton(exploitFrame, "GamePass Bypass", "🔓", "Hook ownership checks ให้เกมเชื่อว่าคุณเป็นเจ้าของ GamePass ทั้งหมด (Client-Side)", RYS.Enabled.GamePassBypass, function(s) M.GamePass.Toggle(s) end)
+            Components.CreateToggleButton(exploitFrame, "Auto Unlock All Items", "🔑", "สแกนและปลดล็อคไอเท็ม + Clone Tools ทั้งหมดลง Backpack อัตโนมัติ", RYS.Enabled.UnlockAll, function(s) M.UnlockAll.Toggle(s) end)
+            Components.CreateActionButton(exploitFrame, "Unlock All (One-Shot)", "🎁", function() M.UnlockAll.Execute() end)
+            
+            Components.CreateSectionLabel(exploitFrame, "━━━ 📦 ITEM SPAWN & DUPE ━━━")
+            Components.CreateActionButton(exploitFrame, "Scan & Spawn All Tools", "📦", function() M.ItemSpawn.Execute() end)
+            Components.CreateActionButton(exploitFrame, "Scan Item Catalog (F9)", "🔍", function() M.ItemSpawn.Scan() end)
+            Components.CreateToggleButton(exploitFrame, "Auto-Dupe Engine", "🔁", "ระบบ Dupe อัตโนมัติ — Clone + Remote Replay ทุก 30 วินาที", RYS.Enabled.DupeEngine, function(s) M.Dupe.Toggle(s) end)
+            Components.CreateActionButton(exploitFrame, "MEGA DUPE (All Methods)", "💥", function() M.Dupe.Execute() end)
+            Components.CreateActionButton(exploitFrame, "Overflow Dupe x50", "🌊", function() M.Dupe.OverflowDupe(50) end)
         end
 
         -- ═══════════════════════════════════════
@@ -339,6 +383,33 @@ return function(RYS, Components)
                 end
             end)
 
+            Components.CreateSectionLabel(settingsFrame, "━━━ 💾 Core Config System ━━━")
+            Components.CreateToggleButton(settingsFrame, "Auto-Save Settings", "💾", "บันทึกค่าและสถานะทุกอย่างอัตโนมัติ (ทุก 3 นาที)", RYS.Settings.AutoSave, function(s) RYS.Settings.AutoSave = s end)
+            Components.CreateActionButton(settingsFrame, "Save Config Now", "📥", function() if M.Config then M.Config.Save() end end)
+            Components.CreateActionButton(settingsFrame, "Load Config", "📤", function() if M.Config then M.Config.Load() end end)
+            
+            Components.CreateSectionLabel(settingsFrame, "━━━ 🎭 Theme & Monitor ━━━")
+            Components.CreateToggleButton(settingsFrame, "Overlay Monitor", "📊", "แสดงสถานะ FPS/Ping บนหน้าจอ", RYS.Enabled.MonitorWidget, function(s) if M.MonitorWidget then M.MonitorWidget.Toggle(s) end end)
+            
+            -- Theme Cycler
+            local themeNames = {"Electric Violet (Default)", "Crimson Blood", "Neon Matrix", "Gold Luxury"}
+            local currentThemeIdx = 1
+            for i, v in ipairs(themeNames) do if v == RYS.Settings.ActiveTheme then currentThemeIdx = i break end end
+            
+            local themeBtn = Components.CreateActionButton(settingsFrame, "Current Theme: " .. themeNames[currentThemeIdx], "🎨", function()
+                currentThemeIdx = currentThemeIdx + 1
+                if currentThemeIdx > #themeNames then currentThemeIdx = 1 end
+                if M.Themes then M.Themes.SetTheme(themeNames[currentThemeIdx]) end
+                -- Update button text doesn't exist out of the box in ActionButton, so we'll just let them see the change
+                RYS.Notify("Theme", "เปลี่ยนธีมเป็น " .. themeNames[currentThemeIdx])
+            end)
+            
+            Components.CreateSectionLabel(settingsFrame, "━━━ 🛡️ Quick Profiles ━━━")
+            Components.CreateActionButton(settingsFrame, "Save as PVP Profile", "⚔️", function() if M.Profiles then M.Profiles.SaveProfile("PVP_Profile") end end)
+            Components.CreateActionButton(settingsFrame, "Load PVP Profile", "⚔️", function() if M.Profiles then M.Profiles.LoadProfile("PVP_Profile") end end)
+            Components.CreateActionButton(settingsFrame, "Save as Farm Profile", "🌾", function() if M.Profiles then M.Profiles.SaveProfile("Farm_Profile") end end)
+            Components.CreateActionButton(settingsFrame, "Load Farm Profile", "🌾", function() if M.Profiles then M.Profiles.LoadProfile("Farm_Profile") end end)
+
             Components.CreateSectionLabel(settingsFrame, "━━━ 🗑️ Memory & cache ━━━")
             Components.CreateActionButton(settingsFrame, "Collect Garbage (Memory Cleanup)", "🧹", function()
                 local before = gcinfo()
@@ -366,6 +437,11 @@ return function(RYS, Components)
             keyLabel.TextSize = sizes.fontSize - 1
             keyLabel.TextXAlignment = Enum.TextXAlignment.Left
             keyLabel.Parent = settingsFrame
+        end
+
+        -- Load Config on Startup
+        if M.Config then
+            pcall(function() M.Config.Load() end)
         end
 
         -- บูตแท็บแรกเป็น default

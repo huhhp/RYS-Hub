@@ -361,6 +361,28 @@ local function Main()
         { path = "modules/exploit/bringall.lua", name = "Player Matrix Bring" },
         { path = "modules/exploit/chatspam.lua", name = "Chat Spammer Action" },
         { path = "modules/exploit/fovchanger.lua", name = "FOV Dynamic Adjuster" },
+        -- Ultimate Exploit Pack v5.0
+        { path = "modules/exploit/gamepass.lua", name = "GamePass Bypass Engine" },
+        { path = "modules/exploit/unlockall.lua", name = "Unlock All Items Engine" },
+        { path = "modules/exploit/itemspawn.lua", name = "Item Spawner Engine" },
+        { path = "modules/exploit/dupe.lua", name = "Dupe Engine Matrix" },
+        -- Premium Features (Phase 4)
+        { path = "core/config.lua", name = "Data Serialization Engine" },
+        { path = "core/keybinds.lua", name = "Hotkey Dispatcher" },
+        { path = "core/profiles.lua", name = "Profile Preset Manager" },
+        { path = "gui/themes.lua", name = "Color Theme Engine" },
+        { path = "gui/monitor.lua", name = "System Performance Monitor" },
+        
+        -- Power Features (Phase 5)
+        { path = "gui/notifications.lua", name = "Notification Center" },
+        { path = "gui/playerlist.lua", name = "Player Radar Panel" },
+        { path = "gui/console.lua", name = "Mini Script Console" },
+        { path = "modules/movement/waypoints.lua", name = "Waypoint Teleport" },
+        
+        -- MCP Intelligence Pack (Inspired by roblox-executor-mcp)
+        { path = "core/bridge.lua", name = "External Bridge Controller" },
+        { path = "modules/exploit/scriptspy.lua", name = "Script Decompiler Inspector" },
+        { path = "modules/exploit/selector.lua", name = "Instance CSS Selector Engine" },
     }
     
     local loadedCount = 0
